@@ -162,7 +162,7 @@ default NUGET_FEED = 'https://api.nuget.org/v3/index.json'
   @{
     var projectFiles = Files.Include("test/**/project.json").Exclude("**/bin/*/app/project.json").ToList();
     projectFiles.ForEach(projectFile => XunitTest(projectFile, testParallel: false));
-    //projectFiles.ForEach(projectFile => DotnetTest(projectFile, testParallel: false));
+    projectFiles.ForEach(projectFile => DotnetTest(projectFile, testParallel: false));
     projectFiles.ForEach(projectFile => DnxTest(projectFile, testParallel: false));
   }
 
