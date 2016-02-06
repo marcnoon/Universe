@@ -2,6 +2,12 @@
 
 [ -z "$KOREBUILD_DOTNET_CHANNEL" ] && KOREBUILD_DOTNET_CHANNEL=beta
 
+if [ "$(uname)" == "Darwin" ]; then
+    # Package restore issues w/ too many file descriptors being open
+    # See https://github.com/dotnet/cli/issues/809
+    ulimit -n 2048
+fi
+
 targets=""
 filename=$0
 while [[ $# > 0 ]]; do
