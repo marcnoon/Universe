@@ -189,6 +189,9 @@ install_dotnet()
             say "Local Version: $localVersion"
 
             [ "$remoteHash" = "$localHash" ] && say "${green}You already have the latest version.${normal}" && return 0
+
+            dotnet_url="https://dotnetcli.blob.core.windows.net/dotnet/$CHANNEL/Binaries/$remoteVersion"
+            dotnet_filename="dotnet-$os-x64.$remoteVersion.tar.gz"
         fi
 
         #This should noop if the directory already exists.
