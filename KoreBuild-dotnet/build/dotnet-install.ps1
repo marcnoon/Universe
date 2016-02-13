@@ -5,7 +5,7 @@
 
 param(
    [string]$Channel="dev",
-   [string]$version="Latest"
+   [string]$Version="Latest"
 )
 
 $ErrorActionPreference="Stop"
@@ -59,6 +59,8 @@ if (Test-Path $LocalFile)
                 say "You already have the latest version"
                 exit 0
             }
+            $DotNetFileName="dotnet-win-x64.$RemoteVersion.zip"
+            $DotNetUrl="$Feed/$Channel/Binaries/$RemoteVersion"
         }
         elseif ($LocalVersion -eq $Version)
         {
