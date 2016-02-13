@@ -175,23 +175,28 @@ install_dotnet()
     if [ "$RELINK" = "0" ]; then
         if [ "$FORCE" = "0" ]; then
             # Check if we need to bother
-            local remoteData="$(curl -s https://dotnetcli.blob.core.windows.net/dotnet/$CHANNEL/dnvm/latest.$os.version)"
-            [ $? != 0 ] && say_err "Unable to determine latest version." && return 1
-
-            local remoteVersion=$(IFS="\n" && echo $remoteData | tail -n 1)
-            local remoteHash=$(IFS="\n" && echo $remoteData | head -n 1)
-
             local localVersion=$(tail -n 1 "$installLocation/cli/.version" 2>/dev/null)
             [ -z $localVersion ] && localVersion='<none>'
             local localHash=$(head -n 1 "$installLocation/cli/.version" 2>/dev/null)
 
-            say "Latest Version: $remoteVersion"
-            say "Local Version: $localVersion"
+            if [ "$VERSION" == "Latest" ]; then
+                local remoteData="$(curl -s https://dotnetcli.blob.core.windows.net/dotnet/$CHANNEL/dnvm/latest.$os.version)"
+                [ $? != 0 ] && say_err "Unable to determine latest version." && return 1
 
-            [ "$remoteHash" = "$localHash" ] && say "${green}You already have the latest version.${normal}" && return 0
+                local remoteVersion=$(IFS="\n" && echo $remoteData | tail -n 1)
+                local remoteHash=$(IFS="\n" && echo $remoteData | head -n 1)
 
-            dotnet_url="https://dotnetcli.blob.core.windows.net/dotnet/$CHANNEL/Binaries/$remoteVersion"
-            dotnet_filename="dotnet-$os-x64.$remoteVersion.tar.gz"
+                say "Latest Version: $remoteVersion"
+                say "Local Version: $localVersion"
+
+                [ "$remoteHash" = "$localHash" ] && say "${green}You already have the latest version.${normal}" && return 0
+
+                dotnet_url="https://dotnetcli.blob.core.windows.net/dotnet/$CHANNEL/Binaries/$remoteVersion"
+                dotnet_filename="dotnet-$os-x64.$remoteVersion.tar.gz"
+            elif [ "$localVersion" == "$VERSION" ]; then
+                say "${green}$VERSION is already installed.${normal}"
+                return 0
+            fi
         fi
 
         #This should noop if the directory already exists.
