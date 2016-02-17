@@ -67,7 +67,7 @@ function _WriteOut {
 
 ### Constants
 $ProductVersion="1.0.0"
-$BuildVersion="rc1-15533"
+$BuildVersion="beta8-15518"
 $Authors="Microsoft Open Technologies, Inc."
 
 # If the Version hasn't been replaced...
@@ -85,7 +85,7 @@ Set-Variable -Option Constant "DefaultUserDirectoryName" ".dnx"
 Set-Variable -Option Constant "DefaultGlobalDirectoryName" "Microsoft DNX"
 Set-Variable -Option Constant "OldUserDirectoryNames" @(".kre", ".k")
 Set-Variable -Option Constant "RuntimePackageName" "dnx"
-Set-Variable -Option Constant "DefaultFeed" "https://www.myget.org/F/aspnetcidev/api/v2"
+Set-Variable -Option Constant "DefaultFeed" "https://www.nuget.org/api/v2"
 Set-Variable -Option Constant "DefaultFeedKey" "DNX_FEED"
 Set-Variable -Option Constant "DefaultUnstableFeed" "https://www.myget.org/F/aspnetcidev/api/v2"
 Set-Variable -Option Constant "DefaultUnstableFeedKey" "DNX_UNSTABLE_FEED"
@@ -438,13 +438,13 @@ function Get-RuntimeAliasOrRuntimeInfo(
 filter List-Parts {
     param($aliases, $items)
 
-    $location = ""
+	$location = ""
 
-    $binDir = Join-Path $_.FullName "bin"
-    if ((Test-Path $binDir)) {
+	$binDir = Join-Path $_.FullName "bin"
+	if ((Test-Path $binDir)) {
         $location = $_.Parent.FullName
     }
-    $active = IsOnPath $binDir
+	$active = IsOnPath $binDir
 
     $fullAlias=""
     $delim=""
@@ -846,14 +846,6 @@ function Is-Elevated() {
     return $user.IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
 }
 
-function Get-ScriptRoot() {
-    if ($PSVersionTable.PSVersion.Major -ge 3) {
-        return $PSScriptRoot
-    }
-
-    return Split-Path $script:MyInvocation.MyCommand.Path -Parent
-}
-
 ### Commands
 
 <#
@@ -871,10 +863,9 @@ function dnvm-update-self {
     $wc = New-Object System.Net.WebClient
     Apply-Proxy $wc -Proxy:$Proxy
 
-    $CurrentScriptRoot = Get-ScriptRoot
-    $dnvmFile = Join-Path $CurrentScriptRoot "dnvm.ps1"
-    $tempDnvmFile = Join-Path $CurrentScriptRoot "temp"
-    $backupFilePath = Join-Path $CurrentScriptRoot "dnvm.ps1.bak"
+    $dnvmFile = Join-Path $PSScriptRoot "dnvm.ps1"
+    $tempDnvmFile = Join-Path $PSScriptRoot "temp"
+    $backupFilePath = Join-Path $PSSCriptRoot "dnvm.ps1.bak"
 
     $wc.DownloadFile($DNVMUpgradeUrl, $tempDnvmFile)
 
@@ -1021,10 +1012,10 @@ filter ColorActive {
 
 <#
 .SYNOPSIS
-    Displays the DNVM version.
+	Displays the DNVM version.
 #>
 function dnvm-version {
-    _WriteOut "$FullVersion"
+	_WriteOut "$FullVersion"
 }
 
 <#
@@ -1053,9 +1044,9 @@ function dnvm-list {
         }
     }
 
-    $aliases | Where-Object {$_.Orphan} | ForEach-Object {
-        $items += $_ | Select-Object @{label='Name';expression={$_.Name}}, @{label='FullName';expression={Join-Path $RuntimesDir $_.Name}} | List-Parts $aliases
-    }
+	$aliases | Where-Object {$_.Orphan} | ForEach-Object {
+		$items += $_ | Select-Object @{label='Name';expression={$_.Name}}, @{label='FullName';expression={Join-Path $RuntimesDir $_.Name}} | List-Parts $aliases
+	}
 
     if($PassThru) {
         $items
@@ -1115,12 +1106,12 @@ function dnvm-alias {
         [Parameter(Position=1)]
         [string]$Version,
 
-        [Alias("arch", "a")]
+        [Alias("arch")]
         [ValidateSet("", "x86", "x64", "arm")]
         [string]$Architecture = "",
 
         [Alias("r")]
-        [ValidateSet("", "clr", "coreclr", "mono")]
+        [ValidateSet("", "clr","coreclr", "mono")]
         [Parameter(ParameterSetName="Write")]
         [string]$Runtime = "",
 
@@ -1183,16 +1174,17 @@ function dnvm-unalias {
 #>
 function dnvm-upgrade {
     param(
+        [Alias("a")]
         [Parameter(Mandatory=$false, Position=0)]
         [string]$Alias = "default",
 
-        [Alias("arch", "a")]
+        [Alias("arch")]
         [ValidateSet("", "x86", "x64", "arm")]
         [Parameter(Mandatory=$false)]
         [string]$Architecture = "",
 
         [Alias("r")]
-        [ValidateSet("", "clr", "coreclr", "mono")]
+        [ValidateSet("", "clr", "coreclr")]
         [Parameter(Mandatory=$false)]
         [string]$Runtime = "",
 
@@ -1213,11 +1205,9 @@ function dnvm-upgrade {
         [Parameter(Mandatory=$false)]
         [switch]$Ngen,
 
-        [Alias("u")]
         [Parameter(Mandatory=$false)]
         [switch]$Unstable,
 
-        [Alias("g")]
         [Parameter(Mandatory=$false)]
         [switch]$Global)
 
@@ -1269,13 +1259,13 @@ function dnvm-install {
         [Parameter(Mandatory=$false, Position=0)]
         [string]$VersionNuPkgOrAlias,
 
-        [Alias("arch", "a")]
+        [Alias("arch")]
         [ValidateSet("", "x86", "x64", "arm")]
         [Parameter(Mandatory=$false)]
         [string]$Architecture = "",
 
         [Alias("r")]
-        [ValidateSet("", "clr", "coreclr", "mono")]
+        [ValidateSet("", "clr","coreclr","mono")]
         [Parameter(Mandatory=$false)]
         [string]$Runtime = "",
 
@@ -1283,6 +1273,7 @@ function dnvm-install {
         [Parameter(Mandatory=$false)]
         [string]$OS = "",
 
+        [Alias("a")]
         [Parameter(Mandatory=$false)]
         [string]$Alias,
 
@@ -1299,15 +1290,12 @@ function dnvm-install {
         [Parameter(Mandatory=$false)]
         [switch]$Ngen,
 
-        [Alias("p")]
         [Parameter(Mandatory=$false)]
         [switch]$Persistent,
 
-        [Alias("u")]
         [Parameter(Mandatory=$false)]
         [switch]$Unstable,
 
-        [Alias("g")]
         [Parameter(Mandatory=$false)]
         [switch]$Global)
 
@@ -1364,7 +1352,7 @@ function dnvm-install {
             if([String]::IsNullOrEmpty($Version)) {
                 $Version = Get-PackageVersion $BaseName
             }
- 
+
             if([String]::IsNullOrEmpty($OS)) {
                 $OS = Get-PackageOS $BaseName
             }
@@ -1378,10 +1366,10 @@ function dnvm-install {
     if (!$IsNuPkg) {
         if ($VersionNuPkgOrAlias -eq "latest") {
             Write-Progress -Activity "Installing runtime" -Status "Determining latest runtime" -Id 1
-            $findPackageResult = Find-Latest -runtimeInfo:$runtimeInfo -Feed:$selectedFeed -Proxy:$Proxy
+            $findPackageResult = Find-Latest -runtimeInfo:$runtimeInfo -Feed:$selectedFeed
         }
         else {
-            $findPackageResult = Find-Package -runtimeInfo:$runtimeInfo -Feed:$selectedFeed -Proxy:$Proxy
+            $findPackageResult = Find-Package -runtimeInfo:$runtimeInfo -Feed:$selectedFeed
         }
         $Version = $findPackageResult.Version
     }
@@ -1537,70 +1525,6 @@ function dnvm-install {
     Write-Progress -Status "Done" -Activity "Install complete" -Id 1 -Complete
 }
 
-<#
-.SYNOPSIS
-    Uninstalls a version of the runtime
-.PARAMETER VersionOrAlias
-    The version to uninstall from the current channel or an alias value to uninstall an alternate
-    runtime or architecture flavor of the specified alias.
-.PARAMETER Architecture
-    The processor architecture of the runtime to uninstall (default: x86)
-.PARAMETER Runtime
-    The runtime flavor to uninstall (default: clr)
-.PARAMETER OS
-    The operating system that the runtime targets (default: win)
-#>
-function dnvm-uninstall {
-    param(
-        [Parameter(Mandatory=$true, Position=0)]
-        [string]$VersionOrAlias,
-
-        [Alias("arch", "a")]
-        [ValidateSet("", "x86", "x64", "arm")]
-        [Parameter(Mandatory=$false)]
-        [string]$Architecture = "",
-
-        [Alias("r")]
-        [ValidateSet("", "clr", "coreclr", "mono")]
-        [Parameter(Mandatory=$false)]
-        [string]$Runtime = "",
-
-        [ValidateSet("", "win", "osx", "darwin", "linux")]
-        [Parameter(Mandatory=$false)]
-        [string]$OS = "")
-
-    $aliasPath = Join-Path $AliasesDir "$VersionOrAlias$AliasExtension"
-    
-    if(Test-Path $aliasPath) {
-        $BaseName = Get-Content $aliasPath
-    } else {
-        $Version = $VersionOrAlias
-        $runtimeInfo = GetRuntimeInfo $Architecture $Runtime $OS $Version
-        $BaseName = $runtimeInfo.RuntimeName
-    }
-
-    $runtimeFolder=""
-    if(Test-Path (Join-Path $RuntimesDir $BaseName)) {
-        $runtimeFolder = Join-Path $RuntimesDir $BaseName
-    }
-    if(Test-Path (Join-Path $GlobalRuntimesDir $BaseName)) {
-        $runtimeFolder = Join-Path $GlobalRuntimesDir $BaseName
-    }
-
-    if($runtimeFolder -ne "") {
-        Remove-Item -literalPath $runtimeFolder -Force -Recurse
-        _WriteOut "Removed '$($runtimeFolder)'"
-    } else {
-        _WriteOut "'$($BaseName)' is not installed"
-    }
-
-    $aliases = Get-RuntimeAlias
-
-    $result = @($aliases | Where-Object { $_.Name.EndsWith($BaseName) })
-    foreach($alias in $result) {
-        dnvm-alias -Delete -Name $alias.Alias
-    }
-}
 
 <#
 .SYNOPSIS
@@ -1621,7 +1545,7 @@ function dnvm-use {
         [Parameter(Mandatory=$true, Position=0)]
         [string]$VersionOrAlias,
 
-        [Alias("arch", "a")]
+        [Alias("arch")]
         [ValidateSet("", "x86", "x64", "arm")]
         [Parameter(Mandatory=$false)]
         [string]$Architecture = "",
@@ -1675,10 +1599,6 @@ function dnvm-use {
     Locates the dnx.exe for the specified version or alias and executes it, providing the remaining arguments to dnx.exe
 .PARAMETER VersionOrAlias
     The version of alias of the runtime to execute
-.PARAMETER Architecture
-    The processor architecture of the runtime to use (default: x86, or whatever the alias specifies in the case of running an alias)
-.PARAMETER Runtime
-    The runtime flavor of the runtime to use (default: clr, or whatever the alias specifies in the case of running an alias)
 .PARAMETER DnxArguments
     The arguments to pass to dnx.exe
 #>
@@ -1687,7 +1607,7 @@ function dnvm-run {
         [Parameter(Mandatory=$true, Position=0)]
         [string]$VersionOrAlias,
 
-        [Alias("arch", "a")]
+        [Alias("arch")]
         [ValidateSet("", "x86", "x64", "arm")]
         [Parameter(Mandatory=$false)]
         [string]$Architecture = "",
@@ -1720,10 +1640,6 @@ function dnvm-run {
     Executes the specified command in a sub-shell where the PATH has been augmented to include the specified DNX
 .PARAMETER VersionOrAlias
     The version of alias of the runtime to make active in the sub-shell
-.PARAMETER Architecture
-    The processor architecture of the runtime to use (default: x86, or whatever the alias specifies in the case of exec-ing an alias)
-.PARAMETER Runtime
-    The runtime flavor of the runtime to use (default: clr, or whatever the alias specifies in the case of exec-ing an alias)
 .PARAMETER Command
     The command to execute in the sub-shell
 #>
@@ -1734,7 +1650,7 @@ function dnvm-exec {
         [Parameter(Mandatory=$false, Position=1)]
         [string]$Command,
 
-        [Alias("arch", "a")]
+        [Alias("arch")]
         [ValidateSet("", "x86", "x64", "arm")]
         [Parameter(Mandatory=$false)]
         [string]$Architecture = "",
@@ -1857,17 +1773,10 @@ if(Test-Path env:\KRE_HOME) {
 
 $cmd = $args[0]
 
-$cmdargs = @()
 if($args.Length -gt 1) {
-    # Combine arguments, ensuring any containing whitespace or parenthesis are correctly quoted 
-    ForEach ($arg In $args[1..($args.Length-1)]) {
-        if ($arg -match "[\s\(\)]") {
-            $cmdargs += """$arg"""
-        } else {
-            $cmdargs += $arg
-        }
-        $cmdargs += " "
-    }
+    $cmdargs = @($args[1..($args.Length-1)])
+} else {
+    $cmdargs = @()
 }
 
 # Can't add this as script-level arguments because they mask '-a' arguments in subcommands!
