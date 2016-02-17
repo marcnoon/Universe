@@ -49,6 +49,7 @@ projectFile=''
 
         foreach (var framework in targetFrameworks)
         {
+<<<<<<< HEAD
             var testArgs = noParallelTestProjects.Contains(projectName) ? " -parallel none" : "";
 
             if (!framework.StartsWith("dnxcore", StringComparison.OrdinalIgnoreCase))
@@ -65,6 +66,15 @@ projectFile=''
                 {
                     Dnx("test" + testArgs, projectFolder);
                 }
+=======
+            var testArgs = IsMono ? " -parallel none" : "";
+
+            if (framework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
+                || (framework.StartsWith("aspnet", StringComparison.OrdinalIgnoreCase)
+                    && !framework.StartsWith("aspnetcore", StringComparison.OrdinalIgnoreCase)))
+            {
+                K(("test" + testArgs), projectFolder, "");
+>>>>>>> aspnet/FixTestsforMono
             }
             else if (!IsLinux ||
                      string.Equals(KOREBUILD_TEST_DNXCORE, "1") ||
